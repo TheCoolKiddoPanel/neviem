@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="sk" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NEVIEM – Čo dnes nevieš?</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- AUTH SCREEN -->
+  <div id="auth-container" class="auth-screen">
+    <div class="auth-box">
+      <h1>NEVIEM</h1>
+      <p class="slogan">„Čo dnes nevieš?“</p>
+      
+      <div class="auth-tabs">
+        <button id="tab-login" class="active" onclick="switchAuthTab('login')">Prihlásiť</button>
+        <button id="tab-register" onclick="switchAuthTab('register')">Registrovať</button>
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <input type="email" id="login-email" placeholder="Email" required>
+        <input type="password" id="login-password" placeholder="Heslo" required>
+        <button type="submit" class="btn-primary">Vstúpiť</button>
+      </form>
+
+      <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+        <input type="text" id="reg-username" placeholder="Používateľské meno" required>
+        <input type="email" id="reg-email" placeholder="Email" required>
+        <input type="password" id="reg-password" placeholder="Heslo" required>
+        <button type="submit" class="btn-primary">Zaregistrovať sa</button>
+      </form>
+      <div id="auth-error" class="error-msg"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-container" class="app-layout hidden">
+    <!-- Top Navigation -->
+    <header class="top-nav">
+      <div class="nav-left" onclick="showSection('feed')">
+        <h2>NEVIEM</h2>
+      </div>
+      <div class="nav-search">
+        <input type="text" id="search-input" placeholder="Hľadať používateľov alebo príspevky..." oninput="handleSearch(event)">
+        <div id="search-results" class="search-dropdown hidden"></div>
+      </div>
+      <div class="nav-right">
+        <button onclick="toggleDarkMode()" title="Prepnúť režim">🌓</button>
+        <div class="dropdown-wrapper">
+          <button onclick="toggleNotifications()" title="Notifikácie">🔔 <span id="notif-badge" class="badge hidden">0</span></button>
+          <div id="notifications-dropdown" class="dropdown-content hidden"></div>
+        </div>
+        <button onclick="logout()" title="Odhlásiť sa">🚪</button>
+      </div>
+    </header>
+
+    <div class="main-container">
+      <!-- Sidebar Desktop -->
+      <aside class="sidebar">
+        <nav>
+          <a onclick="showSection('feed')" class="nav-link active">🏠 Hlavná stránka</a>
+          <a onclick="showSection('friends')" class="nav-link">👥 Priatelia</a>
+          <a onclick="showSection('messages')" class="nav-link">💬 Správy</a>
+          <a onclick="showSection('profile')" class="nav-link">👤 Môj profil</a>
+        </nav>
+      </aside>
+
+      <!-- Content Feed / Views -->
+      <main class="content-area">
+        <!-- FEED VIEW -->
+        <section id="section-feed" class="view-section">
+          <div class="create-post-box">
+            <h3>Čo máš na mysli?</h3>
+            <textarea id="post-content" placeholder="Napíš niečo..."></textarea>
+            <button onclick="createPost()" class="btn-primary">ZVEREJNIŤ</button>
+          </div>
+          <div id="posts-feed"></div>
+        </section>
+
+        <!-- FRIENDS VIEW -->
+        <section id="section-friends" class="view-section hidden">
+          <h2>Priatelia</h2>
+          <div id="friend-requests-container"></div>
+          <h3>Moji priatelia</h3>
+          <div id="friends-list" class="grid-list"></div>
+          <h3>Nájsť priateľov</h3>
+          <div id="all-users-list" class="grid-list"></div>
+        </section>
+
+        <!-- MESSAGES VIEW -->
+        <section id="section-messages" class="view-section hidden">
+          <div class="messenger-container">
+            <div class="messenger-sidebar" id="messenger-users"></div>
+            <div class="messenger-chat">
+              <div id="chat-header" class="chat-header">Vyberte konverzáciu</div>
+              <div id="chat-messages" class="chat-messages"></div>
+              <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Napíšte správu...">
+                <button onclick="sendMessage()" class="btn-primary">Odoslať</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROFILE VIEW -->
+        <section id="section-profile" class="view-section hidden">
+          <div class="profile-header">
+            <img id="profile-avatar" src="" alt="Avatar" class="avatar-large">
+            <div class="profile-info">
+              <h2 id="profile-name"></h2>
+              <p id="profile-username" class="text-muted"></p>
+              <p id="profile-bio"></p>
+              <div class="profile-stats">
+                <span>Príspevky: <strong id="stat-posts">0</strong></span>
+                <span>Priatelia: <strong id="stat-friends">0</strong></span>
+              </div>
+              <button onclick="openEditProfile()" class="btn-secondary">Upraviť profil</button>
+            </div>
+          </div>
+          <h3>Príspevky používateľa</h3>
+          <div id="profile-posts"></div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a onclick="showSection('feed')" class="bnav-link active">🏠</a>
+      <a onclick="showSection('friends')" class="bnav-link">👥</a>
+      <a onclick="showSection('feed'); document.getElementById('post-content').focus();" class="bnav-link">➕</a>
+      <a onclick="showSection('messages')" class="bnav-link">💬</a>
+      <a onclick="showSection('profile')" class="bnav-link">👤</a>
+    </nav>
+  </div>
+
+  <!-- EDIT PROFILE MODAL -->
+  <div id="edit-modal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Upraviť profil</h3>
+      <input type="text" id="edit-name" placeholder="Meno">
+      <textarea id="edit-bio" placeholder="Bio"></textarea>
+      <input type="text" id="edit-avatar" placeholder="URL avatara">
+      <div class="modal-buttons">
+        <button onclick="closeEditProfile()" class="btn-secondary">Zrušiť</button>
+        <button onclick="saveProfile()" class="btn-primary">Uložiť</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
